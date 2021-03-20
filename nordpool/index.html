@@ -1,0 +1,58 @@
+<html>
+<body>
+Nyt: <div id="current_price"></div>
+1h päästä: <div id="1h_price"></div>
+2h päästä: <div id="2h_price"></div>
+3h päästä: <div id="3h_price"></div>
+
+<script>
+var tresholds = [
+	{color:'#D5F5E3', min:-99999.99, max:24.99},
+	{color:'#FCF3CF', min:25.0, max:49.99},
+	{color:'#F5B7B1 ', min:50.0, max:99999.99}
+]
+var NPDate = (d) => {
+	d = d.split('-');
+	return d[2] + '-' + d[1] + '-' + d[0];
+}
+
+var NPTime = (t) => {
+	t = t.split('T')[1].split(':');
+	return t[0];
+}
+
+var _mcb = (rData) => {
+	data = rData.data.Rows.filter((r) => !r.IsExtraRow);
+	dailyData = {}
+	data.map((v) => 
+		v.Columns.map((v2) => {
+			let T = {};
+			T[`${NPTime(v.StartTime)}`] = parseFloat(v2.Value.replace(",","."));
+			dailyData[NPDate(v2.Name)] = {...dailyData[NPDate(v2.Name)], ...T}
+		}
+	))
+	
+	showPrices(dailyData);
+}
+var getDateAndTime = (t) => {
+	let d = new Date();
+	d.setTime(d.getTime()+(t*60*60*1000))
+	return [d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0"+d.getDate()).slice(-2), d.getHours()]
+	
+}
+var showPrices = (dailyData) => {
+	setData('current_price',dailyData[getDateAndTime(0)[0]][getDateAndTime(0)[1]]);
+	setData('1h_price',dailyData[getDateAndTime(1)[0]][getDateAndTime(1)[1]]);
+	setData('2h_price',dailyData[getDateAndTime(2)[0]][getDateAndTime(2)[1]]);
+	setData('3h_price',dailyData[getDateAndTime(3)[0]][getDateAndTime(3)[1]]);
+}
+
+var setData = (id, data) => {
+	let e = document.getElementById(id);
+	e.style.backgroundColor = tresholds.filter((v) => v.min <= data && v.max >= data)[0].color;
+	e.innerHTML = (data/10).toFixed(2) + ' snt/kWh';
+}
+</script>
+<script src="https://jsonp.afeld.me/?callback=_mcb&url=https%3A%2F%2Fwww.nordpoolgroup.com%2Fapi%2Fmarketdata%2Fpage%2F35%3Fcurrency%3D%2C%2C%2CEUR"></script>
+</body>
+</html>
