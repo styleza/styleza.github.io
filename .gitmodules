@@ -1,3 +1,5 @@
 [submodule "nordpool"]
 	path = nordpool
 	url = git@github.com:styleza/nordpool-price-screen.git
+[nordpool "Submod"]
+	url = https://github.com/styleza/nordpool-price-screen.git
